@@ -1,0 +1,12 @@
+{
+  "id": "randomBirthstonesPatch",
+  "name": "Randomized Birthstones",
+  "author": "trueshot",
+  "version": "0.0.1",
+  "released": "9/5/2017",
+  "updated": "5/24/2018",
+  "description": "Randomizes the locations of birthstones throughout Skyrim.",
+  "requires": ["unifiedPatchingFramework"],
+  "moduleLoader": "UPF",
+  "canHotLoad": true
+}
