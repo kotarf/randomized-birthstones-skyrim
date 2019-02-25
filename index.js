@@ -39,23 +39,6 @@ registerPatcher({
                 'Tower' : '000D2338',
                 'Serpent':'000D2339'
             };
-            locals.markers = {
-
-
-                // Thief Skyrim.esm\000D567F
-                // Apprentice Skyrim.esm\000D567E
-                // Atronach Skyrim.esm\000D567D
-                // Lady Skyrim.esm\000D567C
-                // Lord Skyrim.esm\000D567B
-                // Lover Skyrim.esm\000D567A
-                // Mage Skyrim.esm\000D5679
-                // Ritual Skyrim.esm\000D5678
-                // Serpent Skyrim.esm\000D5677
-                // Shadow Skyrim.esm\000D5676
-                // Steed Skyrim.esm\000D5675
-                // Tower Skyrim.esm\000D5673
-                // Warrior Skyrim.esm\000D5671
-            };
 
             locals.birthstone_names = Object.keys(locals.refs);
             locals.birthstone_ref_hex_ids = Object.values(locals.refs);
@@ -99,28 +82,34 @@ registerPatcher({
                 }
             });
         },
-        process: [{
-            load: {
-                signature: 'REFR',
-                filter: function (record) {
-                    let form_id = xelib.GetHexFormID(record);
+        process: [
+            {
+                records: function (patchFile, helpers, settings, locals) {
+                    let birthstone_records = [];
+                    for (let i = 0; i < locals.birthstone_ref_hex_ids.length; ++i) {
+                        let hex_id = locals.birthstone_ref_hex_ids[i];
+                        let form_id = parseInt(hex_id, 16);
 
-                    return locals.birthstone_ref_hex_ids.includes(form_id);
+                        let birthstone_record = xelib.GetRecord(patchFile[0], form_id);
+                        birthstone_records.push(birthstone_record);
+                    }
+
+                    return birthstone_records;
                 },
-            },
-            patch: function (record) {
-                helpers.logMessage(`Patching ${xelib.LongName(record)}`);
+                patch: function (record) {
+                    helpers.logMessage(`Patching ${xelib.LongName(record)}`);
 
-                let hex_form_id = xelib.GetHexFormID(record);
-                let stone_name = locals.ref_to_birthstone[hex_form_id];
-                let new_stone_name = locals.randomized_birthstones[stone_name];
+                    let hex_form_id = xelib.GetHexFormID(record);
+                    let stone_name = locals.ref_to_birthstone[hex_form_id];
+                    let new_stone_name = locals.randomized_birthstones[stone_name];
 
-                if(stone_name !== new_stone_name) {
-                    let new_activator_id = locals.activators[new_stone_name];
+                    if (stone_name !== new_stone_name) {
+                        let new_activator_id = locals.activators[new_stone_name];
 
-                    xelib.SetValue(record, 'NAME - Base', new_activator_id);
+                        xelib.SetValue(record, 'NAME - Base', new_activator_id);
+                    }
                 }
             }
-        }]
+        ]
     })
 });
