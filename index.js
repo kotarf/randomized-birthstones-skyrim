@@ -9,13 +9,12 @@ registerPatcher({
         templateUrl: `${patcherUrl}/partials/settings.html`,
     },
     // optional array of required filenames.  can omit if empty.
-    requiredFiles: [],
+    requiredFiles: ['Unofficial Skyrim Special Edition Patch.esp'],
 
     execute: (patchFile, helpers, settings, locals) => ({
         // required: array of process blocks. each process block should have both
         initialize: function() {
-            debugger;
-            locals.refs = {
+            locals.activator_references = {
                 'Lady' : '000DC84A',
                 'Apprentice' : '000E0DC2',
                 'Lover' : '000E0DBE',
@@ -51,7 +50,7 @@ registerPatcher({
                 'Tower' : '000D567E',
                 'Serpent':'000D567B'
             };
-            locals.refr_markers = {
+            locals.marker_references = {
                 'Lady' : '000DED90',
                 'Apprentice' : '0001BAB9',
                 'Lover' : '0001BABB',
@@ -64,26 +63,25 @@ registerPatcher({
                 'Serpent':'000E0F69'
             };
 
-            locals.birthstone_names = Object.keys(locals.refs);
-            locals.birthstone_ref_hex_ids = Object.values(locals.refs);
-            locals.birthstone_activator_hex_ids = Object.values(locals.activators);
+            locals.birthstone_names = Object.keys(locals.activator_references);
+            locals.birthstone_ref_hex_ids = Object.values(locals.activator_references);
             locals.birthstone_lctn_hex_ids = Object.values(locals.locations);
-            locals.birthstone_map_marker_hex_ids = Object.values(locals.refr_markers);
+            locals.birthstone_map_marker_hex_ids = Object.values(locals.marker_references);
             locals.ref_to_birthstone = {};
             locals.lctn_to_birthstone = {};
             locals.marker_to_birthstone = {};
             locals.randomized_birthstones = {};
 
-            Object.keys(locals.refs).forEach(function(r) {
-                locals.ref_to_birthstone[locals.refs[r]] = r;
+            Object.keys(locals.activator_references).forEach(function(r) {
+                locals.ref_to_birthstone[locals.activator_references[r]] = r;
             });
 
             Object.keys(locals.locations).forEach(function(r) {
                 locals.lctn_to_birthstone[locals.locations[r]] = r;
             });
 
-            Object.keys(locals.refr_markers).forEach(function(r) {
-                locals.marker_to_birthstone[locals.refr_markers[r]] = r;
+            Object.keys(locals.marker_references).forEach(function(r) {
+                locals.marker_to_birthstone[locals.marker_references[r]] = r;
             });
 
             locals.get_records = function(patchFile, helpers, settings, locals, birthstone_hex_ids) {
@@ -92,25 +90,15 @@ registerPatcher({
                     let hex_id = birthstone_hex_ids[i];
                     let form_id = parseInt(hex_id, 16);
 
-                    let birthstone_record = xelib.GetRecord(patchFile[0], form_id);
+                    let birthstone_record = xelib.GetRecord(patchFile, form_id);
                     birthstone_records.push(birthstone_record);
                 }
 
                 return birthstone_records;
             };
 
-            locals.random_integer = function(len) {
-                let random_int = null;
-
-                if (len <= 1) {
-                    return len;
-                }
-
-                while(random_int === null || random_int === 1) {
-                    random_int = Math.floor((Math.random() * len) + 1);
-                }
-
-                return random_int;
+            locals.random_integer = function(max) {
+                return Math.floor(Math.random() * (max - 1)) + 1;
             };
 
             // randomized birthstone ids
@@ -120,7 +108,7 @@ registerPatcher({
                 let r = locals.random_integer(names.length);
 
                 if (!Object.keys(locals.randomized_birthstones).includes(name)) {
-                    let alias_to = names[r - 1];
+                    let alias_to = names[r];
 
                     locals.randomized_birthstones[name] = alias_to;
                     locals.randomized_birthstones[alias_to] = name;
@@ -134,6 +122,7 @@ registerPatcher({
         process: [
             {
                 // Patch References to Activators
+                // Adds new References, disables old References
                 records: function (patchFile, helpers, settings, locals) {
                     return locals.get_records(patchFile, helpers, settings, locals, locals.birthstone_ref_hex_ids);
                 },
@@ -147,7 +136,14 @@ registerPatcher({
                     if (stone_name !== new_stone_name) {
                         let new_activator_id = locals.activators[new_stone_name];
 
-                        xelib.SetValue(record, 'NAME - Base', new_activator_id);
+                        // Copy new record
+                        let new_record = xelib.CopyElement(record, patchFile, true);
+
+                        // Disable existing record
+                        xelib.SetRecordFlag(record, 'Initially Disabled', true);
+
+                        // Rename new record with random birthstone
+                        xelib.SetValue(new_record, 'NAME - Base', new_activator_id);
                     }
                 }
             },
