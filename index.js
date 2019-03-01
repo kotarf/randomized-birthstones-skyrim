@@ -39,16 +39,65 @@ registerPatcher({
                 'Tower' : '000D2338',
                 'Serpent':'000D2339'
             };
+            locals.locations = {
+                'Lady' : '000D5676',
+                'Apprentice' : '000D5673',
+                'Lover' : '000D5678',
+                'Steed' :'000D567D',
+                'Atronach' : '000D5675',
+                'Shadow' : '000D567C',
+                'Lord' : '000D5677',
+                'Ritual' : '000D567A',
+                'Tower' : '000D567E',
+                'Serpent':'000D567B'
+            };
+            locals.refr_markers = {
+                'Lady' : '000DED90',
+                'Apprentice' : '0001BAB9',
+                'Lover' : '0001BABB',
+                'Steed' :'0001BAC0',
+                'Atronach' : '000E0F4C',
+                'Shadow' : '000D3935',
+                'Lord' : '000E0F47',
+                'Ritual' : '000DD9D5',
+                'Tower' : '000E0ED5',
+                'Serpent':'000E0F69'
+            };
 
             locals.birthstone_names = Object.keys(locals.refs);
             locals.birthstone_ref_hex_ids = Object.values(locals.refs);
             locals.birthstone_activator_hex_ids = Object.values(locals.activators);
+            locals.birthstone_lctn_hex_ids = Object.values(locals.locations);
+            locals.birthstone_map_marker_hex_ids = Object.values(locals.refr_markers);
             locals.ref_to_birthstone = {};
+            locals.lctn_to_birthstone = {};
+            locals.marker_to_birthstone = {};
             locals.randomized_birthstones = {};
 
             Object.keys(locals.refs).forEach(function(r) {
                 locals.ref_to_birthstone[locals.refs[r]] = r;
             });
+
+            Object.keys(locals.locations).forEach(function(r) {
+                locals.lctn_to_birthstone[locals.locations[r]] = r;
+            });
+
+            Object.keys(locals.refr_markers).forEach(function(r) {
+                locals.marker_to_birthstone[locals.refr_markers[r]] = r;
+            });
+
+            locals.get_records = function(patchFile, helpers, settings, locals, birthstone_hex_ids) {
+                let birthstone_records = [];
+                for (let i = 0; i < birthstone_hex_ids.length; ++i) {
+                    let hex_id = birthstone_hex_ids[i];
+                    let form_id = parseInt(hex_id, 16);
+
+                    let birthstone_record = xelib.GetRecord(patchFile[0], form_id);
+                    birthstone_records.push(birthstone_record);
+                }
+
+                return birthstone_records;
+            };
 
             locals.random_integer = function(len) {
                 let random_int = null;
@@ -77,24 +126,16 @@ registerPatcher({
                     locals.randomized_birthstones[alias_to] = name;
 
                     names = names.filter(function(element) {
-                       return element !== name && element !== alias_to;
+                        return element !== name && element !== alias_to;
                     });
                 }
             });
         },
         process: [
             {
+                // Patch References to Activators
                 records: function (patchFile, helpers, settings, locals) {
-                    let birthstone_records = [];
-                    for (let i = 0; i < locals.birthstone_ref_hex_ids.length; ++i) {
-                        let hex_id = locals.birthstone_ref_hex_ids[i];
-                        let form_id = parseInt(hex_id, 16);
-
-                        let birthstone_record = xelib.GetRecord(patchFile[0], form_id);
-                        birthstone_records.push(birthstone_record);
-                    }
-
-                    return birthstone_records;
+                    return locals.get_records(patchFile, helpers, settings, locals, locals.birthstone_ref_hex_ids);
                 },
                 patch: function (record) {
                     helpers.logMessage(`Patching ${xelib.LongName(record)}`);
@@ -107,6 +148,44 @@ registerPatcher({
                         let new_activator_id = locals.activators[new_stone_name];
 
                         xelib.SetValue(record, 'NAME - Base', new_activator_id);
+                    }
+                }
+            },
+            {
+                // Patch Locations
+                records: function (patchFile, helpers, settings, locals) {
+                    return locals.get_records(patchFile, helpers, settings, locals, locals.birthstone_lctn_hex_ids);
+                },
+                patch: function (record) {
+                    helpers.logMessage(`Patching ${xelib.LongName(record)}`);
+
+                    let hex_form_id = xelib.GetHexFormID(record);
+                    let stone_name = locals.lctn_to_birthstone[hex_form_id];
+                    let new_stone_name = locals.randomized_birthstones[stone_name];
+
+                    if (stone_name !== new_stone_name) {
+                        let new_name = 'The ' + new_stone_name + ' Doomstone';
+
+                        xelib.SetValue(record, 'FULL - Name', new_name);
+                    }
+                }
+            },
+            {
+                // Patch References to Map Markers
+                records: function (patchFile, helpers, settings, locals) {
+                    return locals.get_records(patchFile, helpers, settings, locals, locals.birthstone_map_marker_hex_ids);
+                },
+                patch: function (record) {
+                    helpers.logMessage(`Patching ${xelib.LongName(record)}`);
+
+                    let hex_form_id = xelib.GetHexFormID(record);
+                    let stone_name = locals.marker_to_birthstone[hex_form_id];
+                    let new_stone_name = locals.randomized_birthstones[stone_name];
+
+                    if (stone_name !== new_stone_name) {
+                        let new_name = 'The ' + new_stone_name + ' Doomstone';
+
+                        xelib.SetValue(record, 'Map Marker\\FULL - Name', new_name);
                     }
                 }
             }
