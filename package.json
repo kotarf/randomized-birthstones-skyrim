@@ -1,9 +1,9 @@
 {
-  "name": "randomizedBirthstonesPatch",
-  "productName": "Randomized Birthstones Patch",
-  "description": "Randomizes locations of birthstones throughout Skyrim",
-  "version": "1.0.0",
-  "author": "trueshot",
+  "name": "randomized-birthstones-patcher",
+  "productName": "Untamed Wilds Patcher",
+  "description": "Enhances AI packages, factions and aggressiveness for most animals and some monsters",
+  "version": "1.1.0",
+  "author": "bladeshriek",
   "copyright": "",
   "repository": "",
   "license": "MIT",
@@ -14,10 +14,11 @@
   "dependencies": {},
   "devDependencies": {
     "angular": "^1.6.6",
-    "gulp": "^3.9.1",
+    "gulp": "^4.0.0",
     "gulp-clean": "^0.3.2",
     "gulp-include": "^2.3.1",
     "gulp-rename": "^1.2.2",
-    "gulp-zip": "^4.1.0"
+    "gulp-zip": "^4.1.0",
+    "lodash-es": "^4.17.21"
   }
 }

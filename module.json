@@ -1,11 +1,11 @@
 {
-  "id": "randomizedBirthstonesPatch",
+  "id": "randomizedBirthstonesPatcher",
   "name": "Randomized Birthstones",
-  "author": "trueshot",
-  "version": "0.0.1",
+  "author": "bladeshriek",
+  "version": "1.0.0",
   "released": "9/5/2017",
-  "updated": "5/24/2018",
-  "description": "Randomizes the placement of birthstones throughout Skyrim.",
+  "updated": "7/8/2024",
+  "description": "Randomizes the placement of standing stones throughout Skyrim.",
   "requires": ["unifiedPatchingFramework"],
   "moduleLoader": "UPF",
   "canHotLoad": true
